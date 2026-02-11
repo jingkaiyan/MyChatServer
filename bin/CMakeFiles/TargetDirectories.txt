@@ -1,0 +1,10 @@
+/home/jky/tony/bin/CMakeFiles/rebuild_cache.dir
+/home/jky/tony/bin/CMakeFiles/edit_cache.dir
+/home/jky/tony/bin/src/CMakeFiles/rebuild_cache.dir
+/home/jky/tony/bin/src/CMakeFiles/edit_cache.dir
+/home/jky/tony/bin/src/server/CMakeFiles/rebuild_cache.dir
+/home/jky/tony/bin/src/server/CMakeFiles/edit_cache.dir
+/home/jky/tony/bin/src/server/CMakeFiles/ChatServer.dir
+/home/jky/tony/bin/src/client/CMakeFiles/rebuild_cache.dir
+/home/jky/tony/bin/src/client/CMakeFiles/edit_cache.dir
+/home/jky/tony/bin/src/client/CMakeFiles/ChatClient.dir
