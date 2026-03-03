@@ -60,54 +60,54 @@ include src/client/CMakeFiles/ChatClient.dir/flags.make
 src/client/CMakeFiles/ChatClient.dir/ChatClient_autogen/mocs_compilation.cpp.o: src/client/CMakeFiles/ChatClient.dir/flags.make
 src/client/CMakeFiles/ChatClient.dir/ChatClient_autogen/mocs_compilation.cpp.o: src/client/ChatClient_autogen/mocs_compilation.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jky/tony/MyChatServer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object src/client/CMakeFiles/ChatClient.dir/ChatClient_autogen/mocs_compilation.cpp.o"
-	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ChatClient.dir/ChatClient_autogen/mocs_compilation.cpp.o -c /home/jky/tony/MyChatServer/build/src/client/ChatClient_autogen/mocs_compilation.cpp
+	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ChatClient.dir/ChatClient_autogen/mocs_compilation.cpp.o -c /home/jky/tony/MyChatServer/build/src/client/ChatClient_autogen/mocs_compilation.cpp
 
 src/client/CMakeFiles/ChatClient.dir/ChatClient_autogen/mocs_compilation.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/ChatClient.dir/ChatClient_autogen/mocs_compilation.cpp.i"
-	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jky/tony/MyChatServer/build/src/client/ChatClient_autogen/mocs_compilation.cpp > CMakeFiles/ChatClient.dir/ChatClient_autogen/mocs_compilation.cpp.i
+	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jky/tony/MyChatServer/build/src/client/ChatClient_autogen/mocs_compilation.cpp > CMakeFiles/ChatClient.dir/ChatClient_autogen/mocs_compilation.cpp.i
 
 src/client/CMakeFiles/ChatClient.dir/ChatClient_autogen/mocs_compilation.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/ChatClient.dir/ChatClient_autogen/mocs_compilation.cpp.s"
-	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jky/tony/MyChatServer/build/src/client/ChatClient_autogen/mocs_compilation.cpp -o CMakeFiles/ChatClient.dir/ChatClient_autogen/mocs_compilation.cpp.s
+	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jky/tony/MyChatServer/build/src/client/ChatClient_autogen/mocs_compilation.cpp -o CMakeFiles/ChatClient.dir/ChatClient_autogen/mocs_compilation.cpp.s
 
 src/client/CMakeFiles/ChatClient.dir/main.cpp.o: src/client/CMakeFiles/ChatClient.dir/flags.make
 src/client/CMakeFiles/ChatClient.dir/main.cpp.o: ../src/client/main.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jky/tony/MyChatServer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object src/client/CMakeFiles/ChatClient.dir/main.cpp.o"
-	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ChatClient.dir/main.cpp.o -c /home/jky/tony/MyChatServer/src/client/main.cpp
+	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ChatClient.dir/main.cpp.o -c /home/jky/tony/MyChatServer/src/client/main.cpp
 
 src/client/CMakeFiles/ChatClient.dir/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/ChatClient.dir/main.cpp.i"
-	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jky/tony/MyChatServer/src/client/main.cpp > CMakeFiles/ChatClient.dir/main.cpp.i
+	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jky/tony/MyChatServer/src/client/main.cpp > CMakeFiles/ChatClient.dir/main.cpp.i
 
 src/client/CMakeFiles/ChatClient.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/ChatClient.dir/main.cpp.s"
-	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jky/tony/MyChatServer/src/client/main.cpp -o CMakeFiles/ChatClient.dir/main.cpp.s
+	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jky/tony/MyChatServer/src/client/main.cpp -o CMakeFiles/ChatClient.dir/main.cpp.s
 
 src/client/CMakeFiles/ChatClient.dir/ui/MainWindow.cpp.o: src/client/CMakeFiles/ChatClient.dir/flags.make
 src/client/CMakeFiles/ChatClient.dir/ui/MainWindow.cpp.o: ../src/client/ui/MainWindow.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jky/tony/MyChatServer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object src/client/CMakeFiles/ChatClient.dir/ui/MainWindow.cpp.o"
-	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ChatClient.dir/ui/MainWindow.cpp.o -c /home/jky/tony/MyChatServer/src/client/ui/MainWindow.cpp
+	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ChatClient.dir/ui/MainWindow.cpp.o -c /home/jky/tony/MyChatServer/src/client/ui/MainWindow.cpp
 
 src/client/CMakeFiles/ChatClient.dir/ui/MainWindow.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/ChatClient.dir/ui/MainWindow.cpp.i"
-	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jky/tony/MyChatServer/src/client/ui/MainWindow.cpp > CMakeFiles/ChatClient.dir/ui/MainWindow.cpp.i
+	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jky/tony/MyChatServer/src/client/ui/MainWindow.cpp > CMakeFiles/ChatClient.dir/ui/MainWindow.cpp.i
 
 src/client/CMakeFiles/ChatClient.dir/ui/MainWindow.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/ChatClient.dir/ui/MainWindow.cpp.s"
-	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jky/tony/MyChatServer/src/client/ui/MainWindow.cpp -o CMakeFiles/ChatClient.dir/ui/MainWindow.cpp.s
+	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jky/tony/MyChatServer/src/client/ui/MainWindow.cpp -o CMakeFiles/ChatClient.dir/ui/MainWindow.cpp.s
 
 src/client/CMakeFiles/ChatClient.dir/ui/LoginDialog.cpp.o: src/client/CMakeFiles/ChatClient.dir/flags.make
 src/client/CMakeFiles/ChatClient.dir/ui/LoginDialog.cpp.o: ../src/client/ui/LoginDialog.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jky/tony/MyChatServer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object src/client/CMakeFiles/ChatClient.dir/ui/LoginDialog.cpp.o"
-	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ChatClient.dir/ui/LoginDialog.cpp.o -c /home/jky/tony/MyChatServer/src/client/ui/LoginDialog.cpp
+	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ChatClient.dir/ui/LoginDialog.cpp.o -c /home/jky/tony/MyChatServer/src/client/ui/LoginDialog.cpp
 
 src/client/CMakeFiles/ChatClient.dir/ui/LoginDialog.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/ChatClient.dir/ui/LoginDialog.cpp.i"
-	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jky/tony/MyChatServer/src/client/ui/LoginDialog.cpp > CMakeFiles/ChatClient.dir/ui/LoginDialog.cpp.i
+	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jky/tony/MyChatServer/src/client/ui/LoginDialog.cpp > CMakeFiles/ChatClient.dir/ui/LoginDialog.cpp.i
 
 src/client/CMakeFiles/ChatClient.dir/ui/LoginDialog.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/ChatClient.dir/ui/LoginDialog.cpp.s"
-	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jky/tony/MyChatServer/src/client/ui/LoginDialog.cpp -o CMakeFiles/ChatClient.dir/ui/LoginDialog.cpp.s
+	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jky/tony/MyChatServer/src/client/ui/LoginDialog.cpp -o CMakeFiles/ChatClient.dir/ui/LoginDialog.cpp.s
 
 # Object files for target ChatClient
 ChatClient_OBJECTS = \

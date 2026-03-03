@@ -55,7 +55,7 @@ include src/client/CMakeFiles/ChatClient_autogen.dir/progress.make
 
 src/client/CMakeFiles/ChatClient_autogen:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jky/tony/MyChatServer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Automatic MOC and UIC for target ChatClient"
-	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/cmake -E cmake_autogen /home/jky/tony/MyChatServer/build/src/client/CMakeFiles/ChatClient_autogen.dir/AutogenInfo.json ""
+	cd /home/jky/tony/MyChatServer/build/src/client && /usr/bin/cmake -E cmake_autogen /home/jky/tony/MyChatServer/build/src/client/CMakeFiles/ChatClient_autogen.dir/AutogenInfo.json Build
 
 ChatClient_autogen: src/client/CMakeFiles/ChatClient_autogen
 ChatClient_autogen: src/client/CMakeFiles/ChatClient_autogen.dir/build.make

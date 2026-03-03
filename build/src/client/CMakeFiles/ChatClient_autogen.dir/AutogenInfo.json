@@ -60,7 +60,7 @@
 	"MOC_PATH_PREFIX" : true,
 	"MOC_PREDEFS_CMD" : 
 	[
-		"/usr/bin/c++",
+		"/usr/bin/g++",
 		"-dM",
 		"-E",
 		"-c",

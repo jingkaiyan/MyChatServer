@@ -1,4 +1,2 @@
 # Hashes of file build rules.
-0a05a89a7670deae44eb88521a592e28 src/client/CMakeFiles/ChatClient_autogen
-018bdd4d1c7ba8ed2f513fe98b5c97e6 src/client/ui_LoginDialog.h
-5af3e82689b696b041252d84a1635f06 src/client/ui_MainWindow.h
+7141c7d154004af1a6c868122fa12f5b src/client/CMakeFiles/ChatClient_autogen

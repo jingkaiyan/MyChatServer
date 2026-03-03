@@ -61,7 +61,7 @@
 					]
 				}
 			],
-			"name" : "",
+			"name" : "Build",
 			"projects" : 
 			[
 				{
@@ -96,14 +96,14 @@
 				{
 					"directoryIndex" : 3,
 					"id" : "ChatClient::@8ca63c80a879d0067daa",
-					"jsonFile" : "target-ChatClient-aaac9dbe9ea6a68cd2f1.json",
+					"jsonFile" : "target-ChatClient-Build-aaac9dbe9ea6a68cd2f1.json",
 					"name" : "ChatClient",
 					"projectIndex" : 1
 				},
 				{
 					"directoryIndex" : 3,
 					"id" : "ChatClient_autogen::@8ca63c80a879d0067daa",
-					"jsonFile" : "target-ChatClient_autogen-16e4956b1ecac676d115.json",
+					"jsonFile" : "target-ChatClient_autogen-Build-16e4956b1ecac676d115.json",
 					"name" : "ChatClient_autogen",
 					"projectIndex" : 1
 				}
