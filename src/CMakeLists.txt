@@ -1,2 +1,7 @@
-add_subdirectory(server)
-add_subdirectory(client)
+if(BUILD_SERVER)
+	add_subdirectory(server)
+endif()
+
+if(BUILD_CLIENT)
+	add_subdirectory(client)
+endif()

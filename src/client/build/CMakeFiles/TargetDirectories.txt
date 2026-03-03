@@ -1,0 +1,4 @@
+/home/jky/tony/MyChatServer/src/client/build/CMakeFiles/rebuild_cache.dir
+/home/jky/tony/MyChatServer/src/client/build/CMakeFiles/edit_cache.dir
+/home/jky/tony/MyChatServer/src/client/build/CMakeFiles/ChatClient.dir
+/home/jky/tony/MyChatServer/src/client/build/CMakeFiles/ChatClient_autogen.dir

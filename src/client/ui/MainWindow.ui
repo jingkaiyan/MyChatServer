@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>920</width>
+    <height>640</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MyChat Desktop</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QMainWindow {
+    background: #0b1220;
+}
+QWidget#centralwidget {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #0f172a, stop:1 #111827);
+}
+QFrame#chatCard {
+    background: rgba(17, 24, 39, 210);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 16px;
+}
+QFrame#sideCard {
+    background: rgba(17, 24, 39, 190);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 16px;
+}
+QLabel#titleLabel {
+    color: #f8fafc;
+    font-size: 22px;
+    font-weight: 700;
+}
+QLabel#subtitleLabel {
+    color: #94a3b8;
+    font-size: 13px;
+}
+QLabel#currentChatLabel {
+    color: #cbd5e1;
+    font-size: 13px;
+    font-weight: 600;
+}
+QTextBrowser {
+    color: #e2e8f0;
+    background: rgba(2, 6, 23, 0.65);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 12px;
+    padding: 10px;
+    font-size: 13px;
+}
+QLineEdit {
+    color: #f1f5f9;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 11px;
+    padding: 9px 12px;
+    font-size: 13px;
+}
+QLineEdit:focus {
+    border: 1px solid #60a5fa;
+}
+QTabWidget::pane {
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 10px;
+    background: rgba(2, 6, 23, 0.45);
+}
+QTabBar::tab {
+    color: #94a3b8;
+    padding: 7px 14px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+QTabBar::tab:selected {
+    color: #e2e8f0;
+    background: rgba(37, 99, 235, 0.25);
+}
+QListWidget {
+    color: #e2e8f0;
+    background: transparent;
+    border: none;
+    outline: none;
+}
+QListWidget::item {
+    border-radius: 8px;
+    padding: 8px;
+    margin: 2px;
+}
+QListWidget::item:selected {
+    background: rgba(37, 99, 235, 0.35);
+}
+QLabel#contactStatsLabel {
+    color: #94a3b8;
+    font-size: 12px;
+}
+QPushButton#sendButton {
+    color: #ffffff;
+    background: #2563eb;
+    border: none;
+    border-radius: 11px;
+    min-width: 110px;
+    min-height: 40px;
+    font-size: 14px;
+    font-weight: 700;
+}
+QPushButton#sendButton:hover { background: #3b82f6; }
+QPushButton#sendButton:pressed { background: #1d4ed8; }</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="leftMargin">
+     <number>22</number>
+    </property>
+    <property name="topMargin">
+     <number>18</number>
+    </property>
+    <property name="rightMargin">
+     <number>22</number>
+    </property>
+    <property name="bottomMargin">
+     <number>18</number>
+    </property>
+    <property name="spacing">
+     <number>14</number>
+    </property>
+    <item>
+     <widget class="QLabel" name="titleLabel">
+      <property name="text">
+       <string>MyChat 聊天客户端</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="subtitleLabel">
+      <property name="text">
+       <string>沉浸式对话界面 · 清爽深色主题</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+        <layout class="QHBoxLayout" name="contentLayout">
+         <property name="spacing">
+          <number>12</number>
+         </property>
+         <item>
+          <widget class="QFrame" name="sideCard">
+           <property name="minimumSize">
+            <size>
+            <width>260</width>
+            <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+            <width>320</width>
+            <height>16777215</height>
+            </size>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <property name="leftMargin">
+            <number>12</number>
+            </property>
+            <property name="topMargin">
+            <number>12</number>
+            </property>
+            <property name="rightMargin">
+            <number>12</number>
+            </property>
+            <property name="bottomMargin">
+            <number>12</number>
+            </property>
+            <item>
+              <widget class="QLineEdit" name="contactSearchEdit">
+               <property name="placeholderText">
+                <string>搜索好友或群组...</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="contactStatsLabel">
+               <property name="text">
+                <string>可见好友 0 · 可见群组 0</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+            <widget class="QTabWidget" name="contactTabs">
+             <property name="currentIndex">
+              <number>0</number>
+             </property>
+             <widget class="QWidget" name="friendsTab">
+              <attribute name="title">
+               <string>好友</string>
+              </attribute>
+              <layout class="QVBoxLayout" name="verticalLayout_5">
+               <property name="leftMargin">
+                <number>8</number>
+               </property>
+               <property name="topMargin">
+                <number>8</number>
+               </property>
+               <property name="rightMargin">
+                <number>8</number>
+               </property>
+               <property name="bottomMargin">
+                <number>8</number>
+               </property>
+               <item>
+                <widget class="QListWidget" name="friendListWidget"/>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="groupsTab">
+              <attribute name="title">
+               <string>群组</string>
+              </attribute>
+              <layout class="QVBoxLayout" name="verticalLayout_6">
+               <property name="leftMargin">
+                <number>8</number>
+               </property>
+               <property name="topMargin">
+                <number>8</number>
+               </property>
+               <property name="rightMargin">
+                <number>8</number>
+               </property>
+               <property name="bottomMargin">
+                <number>8</number>
+               </property>
+               <item>
+                <widget class="QListWidget" name="groupListWidget"/>
+               </item>
+              </layout>
+             </widget>
+            </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="chatCard">
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="leftMargin">
+            <number>14</number>
+            </property>
+            <property name="topMargin">
+            <number>14</number>
+            </property>
+            <property name="rightMargin">
+            <number>14</number>
+            </property>
+            <property name="bottomMargin">
+            <number>14</number>
+            </property>
+            <property name="spacing">
+            <number>12</number>
+            </property>
+            <item>
+            <widget class="QLabel" name="currentChatLabel">
+             <property name="text">
+              <string>当前会话：未选择联系人</string>
+             </property>
+            </widget>
+            </item>
+            <item>
+            <widget class="QTextBrowser" name="chatBrowser"/>
+            </item>
+            <item>
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <property name="spacing">
+              <number>10</number>
+             </property>
+             <item>
+              <widget class="QLineEdit" name="messageEdit"/>
+             </item>
+             <item>
+              <widget class="QPushButton" name="sendButton">
+               <property name="text">
+                <string>发送</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
