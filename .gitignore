@@ -1,0 +1,42 @@
+# Build directories
+build/
+Build/
+build_client/
+Build_Client/
+dist/
+Dist/
+
+# CMake build directories
+CMakeFiles/
+cmake_install.cmake
+CMakeCache.txt
+Makefile
+CPackConfig.cmake
+CPackSourceConfig.cmake
+
+# Output binaries
+*.o
+*.a
+*.so
+*.exe
+*.out
+
+# IDE
+.vscode/
+.idea/
+*.user
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Source build directories
+**/build/
+**/Build/
+**/build_client/
+**/Build_Client/
+**/src/**/Makefile
+**/CMakeFiles/
