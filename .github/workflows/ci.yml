@@ -1,13 +1,24 @@
-name: ci
+name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: ['**']
   pull_request:
+    branches: ['**']
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  build-linux:
+    name: Build (Ubuntu)
     runs-on: ubuntu-22.04
+    timeout-minutes: 25
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -16,19 +27,35 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential cmake libmysqlclient-dev libhiredis-dev \
-            qtbase5-dev qtbase5-dev-tools
+            build-essential \
+            cmake \
+            libmysqlclient-dev \
+            libhiredis-dev \
+            qtbase5-dev \
+            qtbase5-dev-tools
 
       - name: Configure
-        run: cmake -S . -B build -DBUILD_SERVER=ON -DBUILD_CLIENT=ON
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SERVER=ON \
+            -DBUILD_CLIENT=ON
 
       - name: Build
-        run: cmake --build build -j$(nproc)
+        run: cmake --build build -j"$(nproc)"
 
-      - name: Upload binaries
+      - name: Verify binaries
+        run: |
+          test -x bin/ChatServer
+          test -x bin/ChatClient
+
+      - name: Upload binaries (selected push branches)
+        if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master' || github.ref_name == 'chore/enterprise-cleanup-and-sync')
         uses: actions/upload-artifact@v4
         with:
-          name: mychat-bin
+          name: mychat-bin-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 7
           path: |
             bin/ChatServer
             bin/ChatClient
