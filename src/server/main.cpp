@@ -23,7 +23,7 @@ int main(int argc, char **argv)
     signal(SIGINT,resetHandler);
 
     string ip = "127.0.0.1";
-    uint16_t port = 6000;
+    uint16_t port = 8000;
 
     if (argc >= 3)
     {
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
             ip = inputIp;
         }
 
-        cout << "请输入端口(默认 6000): ";
+        cout << "请输入端口(默认 8000): ";
         string inputPort;
         getline(cin, inputPort);
         if (!inputPort.empty())

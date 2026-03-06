@@ -1,0 +1,49 @@
+# Build outputs
+/build/
+/bin/
+/dist/
+/src/build/
+/src/client/build/
+/src/src/
+
+# CMake generated files
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+CMakeFiles/
+*.dir/
+*.rule
+
+# Compiled artifacts
+*.o
+*.a
+*.so
+*.so.*
+*.out
+
+# Runtime and generated data
+/logs/
+/run/
+/exports/
+*.pid
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Editor / IDE
+.vscode/
+.idea/
+*.user
+
+# Environment files
+scripts/server.env
+.env
+
+# Temp files
+*.swp
+*.swo
+*~
+
+# Misc local files
+y

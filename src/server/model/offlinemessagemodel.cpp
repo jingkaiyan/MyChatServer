@@ -5,14 +5,13 @@ using namespace std;
 // 存储用户的离线消息
 void OfflineMsgModel::insert(int userid, string msg)
 {
-    char sql[1024] = {0};
-
-    sprintf(sql, "insert into offlinemessage(userid,message) values(%d,'%s')",
-            userid, msg.c_str());
-
     MySQL mysql;
     if (mysql.connect())
     {
+        string escapedMsg = mysql.escapeString(msg);
+        char sql[1024] = {0};
+        snprintf(sql, sizeof(sql), "insert into offlinemessage(userid,message) values(%d,'%s')",
+                 userid, escapedMsg.c_str());
         mysql.update(sql);
     }
 }

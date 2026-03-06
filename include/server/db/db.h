@@ -1,3 +1,7 @@
+/*
+* 
+*/
+
 #ifndef DB_H
 #define DB_H
 
@@ -19,6 +23,8 @@ public:
     bool update(string sql);
     //查询操作
     MYSQL_RES* query(string sql);
+    //SQL 字符串转义（不包含两侧引号）
+    string escapeString(const string &value);
     //获取连接
     MYSQL* getConnection();
 private:

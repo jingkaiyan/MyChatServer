@@ -20,10 +20,16 @@ endif()
 set(CLIENT_UI_SRCS
 	ui/MainWindow.cpp
 	ui/LoginDialog.cpp
+	ui/AddFriendDialog.cpp
+	ui/JoinGroupDialog.cpp
+	ui/CreateGroupDialog.cpp
 )
 set(CLIENT_UI_HDRS
 	ui/MainWindow.h
 	ui/LoginDialog.h
+	ui/AddFriendDialog.h
+	ui/JoinGroupDialog.h
+	ui/CreateGroupDialog.h
 )
 set(CLIENT_UI_UIS
 	ui/MainWindow.ui

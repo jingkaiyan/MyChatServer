@@ -1,0 +1,54 @@
+{
+  "id": null,
+  "uid": "mychat-overview",
+  "title": "MyChat Overview",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "MySQL Up",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 5 },
+      "targets": [{ "expr": "mychat_mysql_up", "refId": "A" }],
+      "fieldConfig": { "defaults": { "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] } }, "overrides": [] }
+    },
+    {
+      "type": "stat",
+      "title": "Redis Up",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 5 },
+      "targets": [{ "expr": "mychat_redis_up", "refId": "A" }],
+      "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] } }, "overrides": [] }
+    },
+    {
+      "type": "stat",
+      "title": "ChatServer Listen",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 5 },
+      "targets": [{ "expr": "mychat_chatserver_listen", "refId": "A" }],
+      "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] } }, "overrides": [] }
+    },
+    {
+      "type": "stat",
+      "title": "TCP Established",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 5 },
+      "targets": [{ "expr": "mychat_chatserver_tcp_established", "refId": "A" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Core DB Table Size",
+      "gridPos": { "x": 0, "y": 5, "w": 24, "h": 9 },
+      "targets": [
+        { "expr": "mychat_db_user_total", "legendFormat": "user", "refId": "A" },
+        { "expr": "mychat_db_friend_total", "legendFormat": "friend", "refId": "B" },
+        { "expr": "mychat_db_group_total", "legendFormat": "group", "refId": "C" },
+        { "expr": "mychat_db_groupuser_total", "legendFormat": "groupuser", "refId": "D" },
+        { "expr": "mychat_db_offline_total", "legendFormat": "offline", "refId": "E" }
+      ]
+    }
+  ],
+  "templating": { "list": [] },
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {},
+  "annotations": { "list": [] }
+}

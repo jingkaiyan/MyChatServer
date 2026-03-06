@@ -10,6 +10,7 @@
 #include<muduo/net/TcpConnection.h>
 #include<unordered_map>
 #include<functional>
+#include<deque>
 #include<nlohmann/json.hpp>
 #include "model/usermodel.hpp"
 #include<mutex>
@@ -40,12 +41,18 @@ public:
     void oneChat(const TcpConnectionPtr &conn,json &js,Timestamp time);
     //添加好友业务
     void addFriend(const TcpConnectionPtr &conn,json &js,Timestamp time);
+    //删除好友业务
+    void deleteFriend(const TcpConnectionPtr &conn,json &js,Timestamp time);
     //群组业务
     void createGroup(const TcpConnectionPtr &conn,json &js,Timestamp time);
     //加入群组业务
     void addGroup(const TcpConnectionPtr &conn,json &js,Timestamp time);
+    //退出群组业务
+    void quitGroup(const TcpConnectionPtr &conn,json &js,Timestamp time);
     //群聊业务
     void groupChat(const TcpConnectionPtr &conn,json &js,Timestamp time);
+    //AI 对话业务
+    void aiChat(const TcpConnectionPtr &conn,json &js,Timestamp time);
     //获取消息对应的处理器
     MsgHandler getHandler(int msgid);
     //处理客户端异常退出
@@ -76,5 +83,9 @@ private:
     GroupModel _groupModel;
     //redis对象
     Redis _redis;
+    // AI 多轮上下文：userid -> 历史消息（role/content）
+    unordered_map<int, deque<json>> _aiContexts;
+    // 保护 AI 上下文的线程安全
+    mutex _aiContextMutex;
 };
 #endif // !CHATSERVICE_H

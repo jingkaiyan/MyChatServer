@@ -16,11 +16,17 @@ enum EnMsgType
     ONE_CHAT_MSG,       //一对一聊天消息
     ADD_FRIEND_MSG,     //添加好友消息
     ADD_FRIEND_MSG_ACK, //添加好友响应消息
+    DELETE_FRIEND_MSG,  //删除好友消息
+    DELETE_FRIEND_MSG_ACK, //删除好友响应消息
     CREATE_GROUP_MSG,   //创建群组消息
     CREATE_GROUP_MSG_ACK, //创建群组响应消息
     ADD_GROUP_MSG,      //加入群组消息
     ADD_GROUP_MSG_ACK,  //加入群组响应消息
+    QUIT_GROUP_MSG,     //退出群组消息
+    QUIT_GROUP_MSG_ACK, //退出群组响应消息
     GROUP_CHAT_MSG,     //群聊消息
     FRIEND_STATE_MSG,   //好友状态变更消息
+    AI_CHAT_MSG,        //AI 对话请求消息
+    AI_CHAT_MSG_ACK,    //AI 对话响应消息
 };
 #endif // !PUBLIC_H

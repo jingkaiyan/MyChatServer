@@ -1,10 +1,41 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
+#include "AddFriendDialog.h"
+#include "JoinGroupDialog.h"
+#include "CreateGroupDialog.h"
 #include "../network/NetworkClient.h"
 #include <QMessageBox>
 #include <QDateTime>
 #include <QListWidgetItem>
 #include <QDebug>
+
+namespace {
+constexpr int kAiAssistantId = 0;
+const QString kAiAssistantName = QStringLiteral("🤖 AI聊天助手");
+const int kFriendIdRole = Qt::UserRole + 1;
+
+QString extractBaseName(const QString& displayName)
+{
+    int dotPos = displayName.indexOf(" 🔴");
+    QString normalized = dotPos > 0 ? displayName.left(dotPos) : displayName;
+    int pos = normalized.indexOf(" (");
+    if (pos > 0) {
+        return normalized.left(pos);
+    }
+    return normalized;
+}
+
+int findFriendRowByName(QListWidget* listWidget, const QString& targetName)
+{
+    for (int i = 0; i < listWidget->count(); ++i) {
+        QListWidgetItem* item = listWidget->item(i);
+        if (item != nullptr && extractBaseName(item->text()) == targetName) {
+            return i;
+        }
+    }
+    return -1;
+}
+}
 
 // 构造函数，初始化UI
 MainWindow::MainWindow(QWidget *parent)
@@ -13,18 +44,26 @@ MainWindow::MainWindow(QWidget *parent)
     , currentChatUserId(-1)
     , currentChatGroupId(-1)
     , isChatWithGroup(false)
+    , m_aiUnreadCount(0)
 {
     ui->setupUi(this);
     ui->messageEdit->setPlaceholderText("输入消息，按 Enter 可快速发送...");
     connect(ui->messageEdit, &QLineEdit::returnPressed, ui->sendButton, &QPushButton::click);
-    connect(ui->friendListWidget, &QListWidget::itemClicked, this, &MainWindow::on_friendItem_clicked);
-    connect(ui->groupListWidget, &QListWidget::itemClicked, this, &MainWindow::on_groupItem_clicked);
-    connect(ui->contactSearchEdit, &QLineEdit::textChanged, this, &MainWindow::on_contactSearch_textChanged);
+    connect(ui->friendListWidget, &QListWidget::itemClicked, this, &MainWindow::on_friendListWidget_itemClicked);
+    connect(ui->groupListWidget, &QListWidget::itemClicked, this, &MainWindow::on_groupListWidget_itemClicked);
+    connect(ui->contactSearchEdit, &QLineEdit::textChanged, this, &MainWindow::on_contactSearchEdit_textChanged);
 
     ui->chatBrowser->setOpenExternalLinks(true);
     
     // 连接网络信号
     connectNetworkSignals();
+
+    m_friendIdToName[kAiAssistantId] = kAiAssistantName;
+    m_friendNameToId[kAiAssistantName] = kAiAssistantId;
+    QListWidgetItem* aiItem = new QListWidgetItem();
+    aiItem->setData(kFriendIdRole, kAiAssistantId);
+    ui->friendListWidget->insertItem(0, aiItem);
+    refreshAiAssistantItem();
     
     appendSystemTip("欢迎使用 MyChat，正在加载好友和群组列表 ✨");
     
@@ -33,6 +72,10 @@ MainWindow::MainWindow(QWidget *parent)
     QString userName = client.getCurrentUserName();
     int userId = client.getCurrentUserId();
     setWindowTitle(QString("MyChat - %1 (ID: %2)").arg(userName).arg(userId));
+
+    onFriendListReceived(client.getCachedFriendList());
+    onGroupListReceived(client.getCachedGroupList());
+    onOfflineMessagesReceived(client.takeCachedOfflineMessages());
 }
 
 // 析构函数，释放UI资源
@@ -49,8 +92,11 @@ void MainWindow::connectNetworkSignals()
     connect(&client, &NetworkClient::offlineMessagesReceived, this, &MainWindow::onOfflineMessagesReceived);
     connect(&client, &NetworkClient::chatMessageReceived, this, &MainWindow::onChatMessageReceived);
     connect(&client, &NetworkClient::groupMessageReceived, this, &MainWindow::onGroupMessageReceived);
+    connect(&client, &NetworkClient::aiMessageReceived, this, &MainWindow::onAiMessageReceived);
     connect(&client, &NetworkClient::friendStateChanged, this, &MainWindow::onFriendStateChanged);
+    connect(&client, &NetworkClient::friendOperationResult, this, &MainWindow::onFriendOperationResult);
     connect(&client, &NetworkClient::disconnected, this, &MainWindow::onNetworkDisconnected);
+    connect(&client, &NetworkClient::errorOccurred, this, &MainWindow::onNetworkError);
 }
 
 // 发送按钮点击事件处理
@@ -59,6 +105,28 @@ void MainWindow::on_sendButton_clicked()
     QString msg = ui->messageEdit->text().trimmed();
     if(msg.isEmpty()) {
         QMessageBox::warning(this, "提示", "消息不能为空");
+        return;
+    }
+
+    // AI 指令：/ai 你的问题 或 /ai reset
+    if (msg.startsWith("/ai ", Qt::CaseInsensitive)) {
+        QString prompt = msg.mid(4).trimmed();
+        if (prompt.isEmpty()) {
+            QMessageBox::warning(this, "提示", "AI 问题不能为空");
+            return;
+        }
+
+        if (prompt.compare("reset", Qt::CaseInsensitive) == 0) {
+            NetworkClient::instance().sendAiMessage("", true);
+            appendSystemTip("已请求清空 AI 会话记忆");
+            ui->messageEdit->clear();
+            return;
+        }
+
+        NetworkClient::instance().sendAiMessage(prompt);
+        appendChatMessage("我(AI)", prompt, true);
+        appendSystemTip("AI 正在思考...");
+        ui->messageEdit->clear();
         return;
     }
 
@@ -77,8 +145,20 @@ void MainWindow::on_sendButton_clicked()
             ui->messageEdit->clear();
         }
     } else {
-        // 发送单聊消息
-        if (currentChatUserId > 0) {
+        // 发送单聊消息 / AI 助手消息
+        if (currentChatUserId == kAiAssistantId) {
+            if (msg.compare("/reset", Qt::CaseInsensitive) == 0) {
+                client.sendAiMessage("", true);
+                appendSystemTip("已请求清空 AI 会话记忆");
+                ui->messageEdit->clear();
+                return;
+            }
+
+            client.sendAiMessage(msg);
+            appendChatMessage("我", msg, true);
+            appendSystemTip("AI 正在思考...");
+            ui->messageEdit->clear();
+        } else if (currentChatUserId > 0) {
             client.sendChatMessage(currentChatUserId, msg);
             appendChatMessage("我", msg, true);
             ui->messageEdit->clear();
@@ -86,29 +166,38 @@ void MainWindow::on_sendButton_clicked()
     }
 }
 
-void MainWindow::on_friendItem_clicked(QListWidgetItem *item)
+void MainWindow::on_friendListWidget_itemClicked(QListWidgetItem *item)
 {
     if (item == nullptr) {
         return;
     }
     
-    QString friendName = item->text();
-    // 移除状态后缀（如 "(在线)"）
-    int pos = friendName.indexOf(" (");
-    if (pos > 0) {
-        friendName = friendName.left(pos);
+    int friendId = item->data(kFriendIdRole).toInt();
+    QString friendName;
+    if (friendId == kAiAssistantId) {
+        friendName = kAiAssistantName;
+    } else {
+        friendName = extractBaseName(item->text());
+        friendId = m_friendNameToId.value(friendName, -1);
     }
     
     currentChatTarget = friendName;
-    currentChatUserId = m_friendNameToId.value(friendName, -1);
+    currentChatUserId = friendId;
     currentChatGroupId = -1;
     isChatWithGroup = false;
     
-    ui->currentChatLabel->setText(QString("当前会话：好友 %1").arg(friendName));
-    appendSystemTip(QString("已切换到好友会话：%1 (ID: %2)").arg(friendName).arg(currentChatUserId));
+    if (currentChatUserId == kAiAssistantId) {
+        m_aiUnreadCount = 0;
+        refreshAiAssistantItem();
+        ui->currentChatLabel->setText("当前会话：AI 聊天助手");
+        appendSystemTip("已切换到 AI 助手会话，可直接输入消息发送");
+    } else {
+        ui->currentChatLabel->setText(QString("当前会话：好友 %1").arg(friendName));
+        appendSystemTip(QString("已切换到好友会话：%1 (ID: %2)").arg(friendName).arg(currentChatUserId));
+    }
 }
 
-void MainWindow::on_groupItem_clicked(QListWidgetItem *item)
+void MainWindow::on_groupListWidget_itemClicked(QListWidgetItem *item)
 {
     if (item == nullptr) {
         return;
@@ -133,10 +222,19 @@ void MainWindow::on_groupItem_clicked(QListWidgetItem *item)
 void MainWindow::onFriendListReceived(const json& friendList)
 {
     qDebug() << "[MainWindow] 收到好友列表";
+    const QString previousChatTarget = currentChatTarget;
+    const bool previousChatWithGroup = isChatWithGroup;
     
     ui->friendListWidget->clear();
     m_friendIdToName.clear();
     m_friendNameToId.clear();
+
+    m_friendIdToName[kAiAssistantId] = kAiAssistantName;
+    m_friendNameToId[kAiAssistantName] = kAiAssistantId;
+    QListWidgetItem* aiItem = new QListWidgetItem();
+    aiItem->setData(kFriendIdRole, kAiAssistantId);
+    ui->friendListWidget->addItem(aiItem);
+    refreshAiAssistantItem();
     
     for (const auto& friendJson : friendList) {
         int id = friendJson["id"].get<int>();
@@ -148,18 +246,28 @@ void MainWindow::onFriendListReceived(const json& friendList)
         
         m_friendIdToName[id] = qName;
         m_friendNameToId[qName] = id;
-        
-        QString displayName = QString("%1 (%2)").arg(qName).arg(qState);
-        ui->friendListWidget->addItem(displayName);
+
+        QListWidgetItem* friendItem = new QListWidgetItem(QString("%1 (%2)").arg(qName).arg(qState));
+        friendItem->setData(kFriendIdRole, id);
+        ui->friendListWidget->addItem(friendItem);
     }
     
     updateContactStats();
-    appendSystemTip(QString("好友列表已更新，共 %1 位好友").arg(friendList.size()));
+    appendSystemTip(QString("好友列表已更新，共 %1 位好友（含 AI 助手）").arg(friendList.size()));
+
+    if (!previousChatWithGroup && !previousChatTarget.isEmpty() && m_friendNameToId.contains(previousChatTarget)) {
+        int row = findFriendRowByName(ui->friendListWidget, previousChatTarget);
+        if (row >= 0) {
+            ui->friendListWidget->setCurrentRow(row);
+            on_friendListWidget_itemClicked(ui->friendListWidget->item(row));
+            return;
+        }
+    }
     
     // 默认选中第一个好友
     if (ui->friendListWidget->count() > 0) {
         ui->friendListWidget->setCurrentRow(0);
-        on_friendItem_clicked(ui->friendListWidget->item(0));
+        on_friendListWidget_itemClicked(ui->friendListWidget->item(0));
     }
 }
 
@@ -250,9 +358,24 @@ void MainWindow::onGroupMessageReceived(int groupId, int fromUserId, const QStri
     }
 }
 
+void MainWindow::onAiMessageReceived(const QString& userName, const QString& message)
+{
+    if (isAiChatActive()) {
+        appendChatMessage(userName, message);
+    } else {
+        ++m_aiUnreadCount;
+        refreshAiAssistantItem();
+        appendSystemTip(QString("%1 回复：%2").arg(userName, message));
+    }
+}
+
 void MainWindow::onFriendStateChanged(int friendId, const QString& state)
 {
     qDebug() << "[MainWindow] 好友状态变更: friendId=" << friendId << "state=" << state;
+
+    if (friendId == kAiAssistantId) {
+        return;
+    }
     
     QString friendName = m_friendIdToName.value(friendId);
     if (friendName.isEmpty()) {
@@ -272,10 +395,28 @@ void MainWindow::onFriendStateChanged(int friendId, const QString& state)
     appendSystemTip(QString("好友 %1 状态变更为：%2").arg(friendName, state));
 }
 
+void MainWindow::onFriendOperationResult(bool success, const QString& message)
+{
+    if (success)
+    {
+        appendSystemTip(message);
+    }
+    else
+    {
+        appendSystemTip(QString("操作失败：%1").arg(message));
+    }
+}
+
 void MainWindow::onNetworkDisconnected()
 {
     QMessageBox::warning(this, "连接断开", "与服务器的连接已断开，请重新登录");
     close();
+}
+
+void MainWindow::onNetworkError(const QString& error)
+{
+    appendSystemTip(QString("操作失败：%1").arg(error));
+    QMessageBox::warning(this, "操作失败", error);
 }
 
 void MainWindow::appendSystemTip(const QString &text)
@@ -296,7 +437,7 @@ void MainWindow::appendChatMessage(const QString& sender, const QString& message
                            .arg(color, sender, arrow, target, now, message.toHtmlEscaped()));
 }
 
-void MainWindow::on_contactSearch_textChanged(const QString &text)
+void MainWindow::on_contactSearchEdit_textChanged(const QString &text)
 {
     const QString keyword = text.trimmed();
 
@@ -331,4 +472,183 @@ void MainWindow::updateContactStats()
     }
 
     ui->contactStatsLabel->setText(QString("可见好友 %1 · 可见群组 %2").arg(visibleFriends).arg(visibleGroups));
+}
+
+// 添加好友按钮点击
+void MainWindow::on_addFriendButton_clicked()
+{
+    AddFriendDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted)
+    {
+        int friendId = dialog.getFriendId();
+        NetworkClient& client = NetworkClient::instance();
+        
+        // 检查是否添加自己
+        if (friendId == client.getCurrentUserId())
+        {
+            QMessageBox::warning(this, "提示", "不能添加自己为好友");
+            return;
+        }
+        
+        // 检查是否已经是好友
+        if (m_friendIdToName.contains(friendId))
+        {
+            QMessageBox::information(this, "提示", "该用户已经是您的好友");
+            return;
+        }
+        
+        client.addFriend(friendId);
+        appendSystemTip(QString("正在添加好友 %1...").arg(friendId));
+    }
+}
+
+// 删除好友按钮点击
+void MainWindow::on_deleteFriendButton_clicked()
+{
+    QListWidgetItem* currentItem = ui->friendListWidget->currentItem();
+    if (currentItem == nullptr)
+    {
+        QMessageBox::information(this, "提示", "请先选择要删除的好友");
+        return;
+    }
+    
+    int friendId = currentItem->data(kFriendIdRole).toInt();
+    QString friendName = friendId == kAiAssistantId ? kAiAssistantName : extractBaseName(currentItem->text());
+    if (friendId != kAiAssistantId && friendId <= 0)
+    {
+        friendId = m_friendNameToId.value(friendName, -1);
+    }
+
+    if (friendId == -1)
+    {
+        QMessageBox::warning(this, "错误", "无法找到该好友的信息");
+        return;
+    }
+
+    if (friendId == kAiAssistantId)
+    {
+        QMessageBox::information(this, "提示", "AI 助手为系统内置会话，不能删除");
+        return;
+    }
+    
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "确认删除", 
+                                  QString("确定要删除好友 %1 吗？").arg(friendName),
+                                  QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes)
+    {
+        NetworkClient& client = NetworkClient::instance();
+        client.deleteFriend(friendId);
+        appendSystemTip(QString("正在删除好友 %1...").arg(friendName));
+    }
+}
+
+QListWidgetItem* MainWindow::findAiAssistantItem() const
+{
+    for (int i = 0; i < ui->friendListWidget->count(); ++i) {
+        QListWidgetItem* item = ui->friendListWidget->item(i);
+        if (item != nullptr && item->data(kFriendIdRole).toInt() == kAiAssistantId) {
+            return item;
+        }
+    }
+    return nullptr;
+}
+
+void MainWindow::refreshAiAssistantItem()
+{
+    QListWidgetItem* aiItem = findAiAssistantItem();
+    if (aiItem == nullptr) {
+        return;
+    }
+
+    QString displayName = QString("%1 (机器人)").arg(kAiAssistantName);
+    if (m_aiUnreadCount > 0) {
+        displayName += QString(" 🔴%1").arg(m_aiUnreadCount);
+    }
+    aiItem->setText(displayName);
+
+    int aiRow = ui->friendListWidget->row(aiItem);
+    if (aiRow > 0) {
+        QListWidgetItem* moved = ui->friendListWidget->takeItem(aiRow);
+        ui->friendListWidget->insertItem(0, moved);
+    }
+}
+
+bool MainWindow::isAiChatActive() const
+{
+    return !isChatWithGroup && currentChatUserId == kAiAssistantId;
+}
+
+// 创建群组按钮点击
+void MainWindow::on_createGroupButton_clicked()
+{
+    CreateGroupDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted)
+    {
+        QString groupName = dialog.getGroupName();
+        QString groupDesc = dialog.getGroupDesc();
+        
+        NetworkClient& client = NetworkClient::instance();
+        client.createGroup(groupName, groupDesc);
+        appendSystemTip(QString("正在创建群组 %1...").arg(groupName));
+    }
+}
+
+// 加入群组按钮点击
+void MainWindow::on_joinGroupButton_clicked()
+{
+    JoinGroupDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted)
+    {
+        int groupId = dialog.getGroupId();
+        
+        // 检查是否已经在群组中
+        if (m_groupIdToName.contains(groupId))
+        {
+            QMessageBox::information(this, "提示", "您已经在该群组中");
+            return;
+        }
+        
+        NetworkClient& client = NetworkClient::instance();
+        client.joinGroup(groupId);
+        appendSystemTip(QString("正在加入群组 %1...").arg(groupId));
+    }
+}
+
+// 退出群组按钮点击
+void MainWindow::on_quitGroupButton_clicked()
+{
+    QListWidgetItem* currentItem = ui->groupListWidget->currentItem();
+    if (currentItem == nullptr)
+    {
+        QMessageBox::information(this, "提示", "请先选择要退出的群组");
+        return;
+    }
+    
+    QString groupName = currentItem->text();
+    int pos = groupName.indexOf(" (");
+    if (pos > 0)
+    {
+        groupName = groupName.left(pos);
+    }
+    
+    int groupId = m_groupNameToId.value(groupName, -1);
+    if (groupId == -1)
+    {
+        QMessageBox::warning(this, "错误", "无法找到该群组的信息");
+        return;
+    }
+    
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "确认退出", 
+                                  QString("确定要退出群组 %1 吗？").arg(groupName),
+                                  QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes)
+    {
+        NetworkClient& client = NetworkClient::instance();
+        client.quitGroup(groupId);
+        appendSystemTip(QString("正在退出群组 %1...").arg(groupName));
+    }
 }

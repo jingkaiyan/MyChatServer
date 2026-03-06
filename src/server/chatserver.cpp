@@ -8,12 +8,30 @@
 #include <functional> // 参数对象绑定器
 #include <iostream>
 #include <string>
+#include <atomic>
+#include <chrono>
 #include <nlohmann/json.hpp>
+#include <muduo/base/Logging.h>
 #include "chatservice.hpp"
 
 using namespace std;
 using namespace placeholders; // 占位符
 using json = nlohmann::json;
+
+namespace
+{
+atomic<unsigned long long> g_msgCounter{0};
+atomic<unsigned long long> g_parseErrorCounter{0};
+
+string buildTraceId()
+{
+    static atomic<unsigned long long> seq{0};
+    auto now = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
+    auto n = ++seq;
+    return string("tr_") + to_string(now) + "_" + to_string(n);
+}
+}
+
 ChatServer::ChatServer(EventLoop *loop,
                        const InetAddress &listenAddr,
                        const string &nameArg)
@@ -37,9 +55,16 @@ void ChatServer::start()
 // 连接监听
 void ChatServer::onConnection(const TcpConnectionPtr &conn)
 {
+    if (conn->connected())
+    {
+        LOG_INFO << "[connection] event=connected peer=" << conn->peerAddress().toIpPort();
+        return;
+    }
+
     //客户端断开连接
     if(!conn -> connected())
     {
+        LOG_INFO << "[connection] event=disconnected peer=" << conn->peerAddress().toIpPort();
         ChatService::instance() -> clientCloseException(conn);  //客户端异常退出
         conn -> shutdown();
     }
@@ -50,12 +75,56 @@ void ChatServer::onMessage(const TcpConnectionPtr &conn,
                            Buffer *buf,
                            Timestamp time)
 {
-   string buffer = buf -> retrieveAllAsString();
-   //数据的反序列化
-   json js = json::parse(buffer);
-   //达到的目的：完全解耦网络模块的代码和业务模块的代码
-   //通过js["msgid"]获取业务handler -> conn js time
-   auto msgHandler = ChatService::instance() -> getHandler(js["msgid"].get<int>());
-   //调用消息对应的业务处理方法
-   msgHandler(conn,js,time);
+    const char *eol = nullptr;
+    while ((eol = buf->findEOL()) != nullptr)
+    {
+        string line(buf->peek(), eol);
+        buf->retrieveUntil(eol + 1);
+
+        if (line.empty())
+        {
+            continue;
+        }
+
+        try
+        {
+            json js = json::parse(line);
+            if (!js.contains("msgid"))
+            {
+                LOG_WARN << "[服务] 收到缺少msgid的消息: " << line;
+                continue;
+            }
+
+            if (!js.contains("trace_id"))
+            {
+                js["trace_id"] = buildTraceId();
+            }
+
+            auto msgid = js["msgid"].get<int>();
+            auto traceId = js["trace_id"].get<string>();
+            auto count = ++g_msgCounter;
+            LOG_INFO << "[ingress] trace_id=" << traceId
+                     << " msgid=" << msgid
+                     << " peer=" << conn->peerAddress().toIpPort()
+                     << " bytes=" << line.size()
+                     << " total_msgs=" << count;
+
+            auto msgHandler = ChatService::instance()->getHandler(msgid);
+            msgHandler(conn, js, time);
+        }
+        catch (const json::exception &e)
+        {
+            auto errCount = ++g_parseErrorCounter;
+            LOG_WARN << "[服务] JSON解析失败: " << e.what() << " raw=" << line;
+            LOG_WARN << "[ingress] parse_error_total=" << errCount
+                     << " peer=" << conn->peerAddress().toIpPort();
+        }
+    }
+
+    const size_t kMaxBufferedBytes = 1024 * 1024;
+    if (buf->readableBytes() > kMaxBufferedBytes)
+    {
+        LOG_WARN << "[服务] 缓冲区超限，丢弃未完成数据 bytes=" << buf->readableBytes();
+        buf->retrieveAll();
+    }
 }

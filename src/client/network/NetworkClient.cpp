@@ -2,6 +2,29 @@
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QDateTime>
+
+namespace {
+json normalizeArrayPayload(const json& value)
+{
+    if (!value.is_array()) {
+        return json::array();
+    }
+
+    json normalized = json::array();
+    for (const auto& item : value) {
+        if (item.is_string()) {
+            try {
+                normalized.push_back(json::parse(item.get<std::string>()));
+            } catch (...) {
+            }
+        } else {
+            normalized.push_back(item);
+        }
+    }
+    return normalized;
+}
+}
 
 NetworkClient& NetworkClient::instance()
 {
@@ -12,6 +35,9 @@ NetworkClient& NetworkClient::instance()
 NetworkClient::NetworkClient(QObject* parent)
     : QObject(parent)
     , m_socket(new QTcpSocket(this))
+    , m_cachedFriendList(json::array())
+    , m_cachedGroupList(json::array())
+    , m_cachedOfflineMessages(json::array())
     , m_currentUserId(-1)
 {
     connect(m_socket, &QTcpSocket::connected, this, &NetworkClient::onConnected);
@@ -19,6 +45,23 @@ NetworkClient::NetworkClient(QObject* parent)
     connect(m_socket, &QTcpSocket::readyRead, this, &NetworkClient::onReadyRead);
     connect(m_socket, QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error),
             this, &NetworkClient::onSocketError);
+}
+
+json NetworkClient::getCachedFriendList() const
+{
+    return m_cachedFriendList;
+}
+
+json NetworkClient::getCachedGroupList() const
+{
+    return m_cachedGroupList;
+}
+
+json NetworkClient::takeCachedOfflineMessages()
+{
+    json payload = m_cachedOfflineMessages;
+    m_cachedOfflineMessages = json::array();
+    return payload;
 }
 
 NetworkClient::~NetworkClient()
@@ -77,7 +120,10 @@ void NetworkClient::sendChatMessage(int toUserId, const QString& message)
 {
     json chatMsg;
     chatMsg["msgid"] = ONE_CHAT_MSG;
+    chatMsg["id"] = m_currentUserId;
     chatMsg["from"] = m_currentUserId;
+    chatMsg["name"] = m_currentUserName.toStdString();
+    chatMsg["time"] = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString();
     chatMsg["to"] = toUserId;
     chatMsg["msg"] = message.toStdString();
     
@@ -89,12 +135,29 @@ void NetworkClient::sendGroupMessage(int groupId, const QString& message)
 {
     json groupMsg;
     groupMsg["msgid"] = GROUP_CHAT_MSG;
+    groupMsg["id"] = m_currentUserId;
     groupMsg["from"] = m_currentUserId;
+    groupMsg["name"] = m_currentUserName.toStdString();
+    groupMsg["time"] = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString();
     groupMsg["groupid"] = groupId;
     groupMsg["msg"] = message.toStdString();
     
     sendMessage(groupMsg);
     qDebug() << "[Network] 发送群聊消息: groupId=" << groupId;
+}
+
+void NetworkClient::sendAiMessage(const QString& message, bool resetContext)
+{
+    json aiMsg;
+    aiMsg["msgid"] = AI_CHAT_MSG;
+    aiMsg["id"] = m_currentUserId;
+    aiMsg["msg"] = message.toStdString();
+    if (resetContext) {
+        aiMsg["action"] = "reset";
+    }
+
+    sendMessage(aiMsg);
+    qDebug() << "[Network] 发送AI对话请求, reset=" << resetContext;
 }
 
 void NetworkClient::addFriend(int friendId)
@@ -105,6 +168,16 @@ void NetworkClient::addFriend(int friendId)
     addMsg["friendid"] = friendId;
     
     sendMessage(addMsg);
+}
+
+void NetworkClient::deleteFriend(int friendId)
+{
+    json delMsg;
+    delMsg["msgid"] = DELETE_FRIEND_MSG;
+    delMsg["id"] = m_currentUserId;
+    delMsg["friendid"] = friendId;
+    
+    sendMessage(delMsg);
 }
 
 void NetworkClient::createGroup(const QString& groupName, const QString& groupDesc)
@@ -126,6 +199,16 @@ void NetworkClient::joinGroup(int groupId)
     joinMsg["groupid"] = groupId;
     
     sendMessage(joinMsg);
+}
+
+void NetworkClient::quitGroup(int groupId)
+{
+    json quitMsg;
+    quitMsg["msgid"] = QUIT_GROUP_MSG;
+    quitMsg["id"] = m_currentUserId;
+    quitMsg["groupid"] = groupId;
+    
+    sendMessage(quitMsg);
 }
 
 void NetworkClient::sendMessage(const json& jsonMsg)
@@ -155,6 +238,9 @@ void NetworkClient::onDisconnected()
     qDebug() << "[Network] 与服务器断开连接";
     m_currentUserId = -1;
     m_currentUserName.clear();
+    m_cachedFriendList = json::array();
+    m_cachedGroupList = json::array();
+    m_cachedOfflineMessages = json::array();
     emit disconnected();
 }
 
@@ -211,8 +297,64 @@ void NetworkClient::handleMessage(const json& jsonMsg)
     case GROUP_CHAT_MSG:
         handleGroupMessage(jsonMsg);
         break;
+    case AI_CHAT_MSG_ACK:
+        handleAiResponse(jsonMsg);
+        break;
     case FRIEND_STATE_MSG:
         handleFriendStateChange(jsonMsg);
+        break;
+    case ADD_FRIEND_MSG_ACK:
+    {
+        if (jsonMsg.contains("error") && jsonMsg["error"].get<int>() != 0) {
+            QString errmsg = QString::fromStdString(jsonMsg.value("errmsg", "好友操作失败"));
+            emit friendOperationResult(false, errmsg);
+            emit errorOccurred(errmsg);
+            break;
+        }
+        emit friendOperationResult(true, "添加好友成功");
+        if (jsonMsg.contains("friends")) {
+            m_cachedFriendList = normalizeArrayPayload(jsonMsg["friends"]);
+            emit friendListReceived(m_cachedFriendList);
+        } else {
+            m_cachedFriendList = json::array();
+            emit friendListReceived(m_cachedFriendList);
+        }
+        break;
+    }
+    case DELETE_FRIEND_MSG_ACK:
+    {
+        if (jsonMsg.contains("error") && jsonMsg["error"].get<int>() != 0) {
+            QString errmsg = QString::fromStdString(jsonMsg.value("errmsg", "好友操作失败"));
+            emit friendOperationResult(false, errmsg);
+            emit errorOccurred(errmsg);
+            break;
+        }
+        emit friendOperationResult(true, "删除好友成功");
+        // 好友列表更新响应，会包含更新后的好友列表
+        if (jsonMsg.contains("friends")) {
+            m_cachedFriendList = normalizeArrayPayload(jsonMsg["friends"]);
+            emit friendListReceived(m_cachedFriendList);
+        } else {
+            m_cachedFriendList = json::array();
+            emit friendListReceived(m_cachedFriendList);
+        }
+        break;
+    }
+    case CREATE_GROUP_MSG_ACK:
+    case ADD_GROUP_MSG_ACK:
+    case QUIT_GROUP_MSG_ACK:
+        if (jsonMsg.contains("error") && jsonMsg["error"].get<int>() != 0) {
+            emit errorOccurred(QString::fromStdString(jsonMsg.value("errmsg", "群组操作失败")));
+            break;
+        }
+        // 群组列表更新响应，会包含更新后的群组列表（如果有）
+        if (jsonMsg.contains("groups")) {
+            m_cachedGroupList = normalizeArrayPayload(jsonMsg["groups"]);
+            emit groupListReceived(m_cachedGroupList);
+        } else {
+            m_cachedGroupList = json::array();
+            emit groupListReceived(m_cachedGroupList);
+        }
         break;
     default:
         qDebug() << "[Network] 收到未处理的消息类型:" << msgId;
@@ -222,7 +364,12 @@ void NetworkClient::handleMessage(const json& jsonMsg)
 
 void NetworkClient::handleLoginResponse(const json& jsonMsg)
 {
-    int errno_val = jsonMsg["errno"].get<int>();
+    int errno_val = -1;
+    if (jsonMsg.contains("error")) {
+        errno_val = jsonMsg["error"].get<int>();
+    } else if (jsonMsg.contains("errno")) {
+        errno_val = jsonMsg["errno"].get<int>();
+    }
     std::string errmsg = jsonMsg.value("errmsg", "");
     
     if (errno_val != 0) {
@@ -241,23 +388,37 @@ void NetworkClient::handleLoginResponse(const json& jsonMsg)
     
     // 发送好友列表
     if (jsonMsg.contains("friends")) {
-        emit friendListReceived(jsonMsg["friends"]);
+        m_cachedFriendList = normalizeArrayPayload(jsonMsg["friends"]);
+    } else {
+        m_cachedFriendList = json::array();
     }
+    emit friendListReceived(m_cachedFriendList);
     
     // 发送群组列表
     if (jsonMsg.contains("groups")) {
-        emit groupListReceived(jsonMsg["groups"]);
+        m_cachedGroupList = normalizeArrayPayload(jsonMsg["groups"]);
+    } else {
+        m_cachedGroupList = json::array();
     }
+    emit groupListReceived(m_cachedGroupList);
     
     // 发送离线消息
     if (jsonMsg.contains("offlinemsg")) {
-        emit offlineMessagesReceived(jsonMsg["offlinemsg"]);
+        m_cachedOfflineMessages = normalizeArrayPayload(jsonMsg["offlinemsg"]);
+        emit offlineMessagesReceived(m_cachedOfflineMessages);
+    } else {
+        m_cachedOfflineMessages = json::array();
     }
 }
 
 void NetworkClient::handleRegisterResponse(const json& jsonMsg)
 {
-    int errno_val = jsonMsg["errno"].get<int>();
+    int errno_val = -1;
+    if (jsonMsg.contains("error")) {
+        errno_val = jsonMsg["error"].get<int>();
+    } else if (jsonMsg.contains("errno")) {
+        errno_val = jsonMsg["errno"].get<int>();
+    }
     std::string errmsg = jsonMsg.value("errmsg", "");
     
     if (errno_val != 0) {
@@ -285,6 +446,19 @@ void NetworkClient::handleGroupMessage(const json& jsonMsg)
     std::string message = jsonMsg["msg"].get<std::string>();
     
     emit groupMessageReceived(groupId, fromUserId, QString::fromStdString(userName), QString::fromStdString(message));
+}
+
+void NetworkClient::handleAiResponse(const json& jsonMsg)
+{
+    int err = jsonMsg.value("error", 1);
+    if (err != 0) {
+        emit errorOccurred(QString::fromStdString(jsonMsg.value("errmsg", "AI 服务异常")));
+        return;
+    }
+
+    std::string userName = jsonMsg.value("name", "AI助手");
+    std::string message = jsonMsg.value("msg", "");
+    emit aiMessageReceived(QString::fromStdString(userName), QString::fromStdString(message));
 }
 
 void NetworkClient::handleFriendStateChange(const json& jsonMsg)

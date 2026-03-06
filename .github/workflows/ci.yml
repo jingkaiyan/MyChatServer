@@ -1,0 +1,34 @@
+name: ci
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake libmysqlclient-dev libhiredis-dev \
+            qtbase5-dev qtbase5-dev-tools
+
+      - name: Configure
+        run: cmake -S . -B build -DBUILD_SERVER=ON -DBUILD_CLIENT=ON
+
+      - name: Build
+        run: cmake --build build -j$(nproc)
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: mychat-bin
+          path: |
+            bin/ChatServer
+            bin/ChatClient

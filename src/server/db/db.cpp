@@ -1,6 +1,7 @@
 #include "db/db.h"
 #include <muduo/base/Logging.h>
 #include <string>
+#include <cstdlib>
 /*
  * 数据库操作实现：
  * - 封装 MySQL 连接的初始化与释放，统一管理 _conn。
@@ -9,11 +10,43 @@
  * - query() 执行读操作，失败记录日志并返回 nullptr。
  */
 using namespace std;
+
+namespace
+{
+string getEnvOrDefault(const char *key, const string &defaultValue)
+{
+    const char *value = getenv(key);
+    if (value != nullptr && *value != '\0')
+    {
+        return value;
+    }
+    return defaultValue;
+}
+
+unsigned int getEnvPortOrDefault(const char *key, unsigned int defaultValue)
+{
+    const char *value = getenv(key);
+    if (value == nullptr || *value == '\0')
+    {
+        return defaultValue;
+    }
+
+    char *end = nullptr;
+    unsigned long parsed = strtoul(value, &end, 10);
+    if (end == value || *end != '\0' || parsed == 0 || parsed > 65535)
+    {
+        return defaultValue;
+    }
+    return static_cast<unsigned int>(parsed);
+}
+}
+
 // 初始化相关信息
-string server = "127.0.0.1";
-string user = "root";
-string password = "123456";
-string dbname = "chat";
+string server = getEnvOrDefault("MYCHAT_DB_HOST", "127.0.0.1");
+string user = getEnvOrDefault("MYCHAT_DB_USER", "chat");
+string password = getEnvOrDefault("MYCHAT_DB_PASS", "chat123");
+string dbname = getEnvOrDefault("MYCHAT_DB_NAME", "chat");
+unsigned int dbport = getEnvPortOrDefault("MYCHAT_DB_PORT", 3306);
 
 // 初始化数据库连接
 MySQL::MySQL()
@@ -32,11 +65,12 @@ MySQL::~MySQL()
 bool MySQL::connect()
 {
     MYSQL *p = mysql_real_connect(_conn, server.c_str(), user.c_str(),
-                                  password.c_str(), dbname.c_str(), 3306, nullptr, 0);
+                                  password.c_str(), dbname.c_str(), dbport, nullptr, 0);
     if (p != nullptr)
     {
         mysql_query(_conn, "set names utf8"); // 设置utf-8字符集
-        LOG_INFO << "[数据库] 连接成功";
+        LOG_INFO << "[数据库] 连接成功 host=" << server << " port=" << dbport
+                 << " user=" << user << " db=" << dbname;
     }
     else
     {
@@ -66,6 +100,25 @@ MYSQL_RES *MySQL::query(string sql)
     }
     return mysql_use_result(_conn);
 }
+
+string MySQL::escapeString(const string &value)
+{
+    if (_conn == nullptr)
+    {
+        return value;
+    }
+
+    string escaped;
+    escaped.resize(value.size() * 2 + 1);
+    unsigned long escapedLen = mysql_real_escape_string(
+        _conn,
+        &escaped[0],
+        value.c_str(),
+        static_cast<unsigned long>(value.size()));
+    escaped.resize(escapedLen);
+    return escaped;
+}
+
 // 获取连接
 MYSQL *MySQL::getConnection()
 {

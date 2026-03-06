@@ -218,6 +218,24 @@ QPushButton#sendButton:pressed { background: #1d4ed8; }</string>
                <item>
                 <widget class="QListWidget" name="friendListWidget"/>
                </item>
+               <item>
+                <layout class="QHBoxLayout" name="friendButtonLayout">
+                 <item>
+                  <widget class="QPushButton" name="addFriendButton">
+                   <property name="text">
+                    <string>添加好友</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="deleteFriendButton">
+                   <property name="text">
+                    <string>删除好友</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
               </layout>
              </widget>
              <widget class="QWidget" name="groupsTab">
@@ -239,6 +257,31 @@ QPushButton#sendButton:pressed { background: #1d4ed8; }</string>
                </property>
                <item>
                 <widget class="QListWidget" name="groupListWidget"/>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="groupButtonLayout">
+                 <item>
+                  <widget class="QPushButton" name="createGroupButton">
+                   <property name="text">
+                    <string>创建群组</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="joinGroupButton">
+                   <property name="text">
+                    <string>加入群组</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="quitGroupButton">
+                   <property name="text">
+                    <string>退出群组</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
               </layout>
              </widget>

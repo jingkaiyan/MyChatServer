@@ -13,13 +13,15 @@
 // 创建群组
 bool GroupModel::createGroup(Group &group)
 {
-    // 组装sql语句
-    char sql[1024] = {0};
-    sprintf(sql, "insert into allgroup(groupname,groupdesc) values('%s','%s')",
-            group.getName().c_str(), group.getDesc().c_str());
     MySQL mysql;
     if (mysql.connect())
     {
+        string escapedName = mysql.escapeString(group.getName());
+        string escapedDesc = mysql.escapeString(group.getDesc());
+        char sql[1024] = {0};
+        snprintf(sql, sizeof(sql), "insert into allgroup(groupname,groupdesc) values('%s','%s')",
+                 escapedName.c_str(), escapedDesc.c_str());
+
         if (mysql.update(sql))
         {
             group.setId(mysql_insert_id(mysql.getConnection()));
@@ -31,9 +33,23 @@ bool GroupModel::createGroup(Group &group)
 // 加入群组
 bool GroupModel::addGroup(int userid, int groupid, string role)
 {
+    MySQL mysql;
+    if (mysql.connect())
+    {
+        string escapedRole = mysql.escapeString(role);
+        char sql[1024] = {0};
+        snprintf(sql, sizeof(sql), "insert into groupuser values('%d','%d','%s')", groupid, userid, escapedRole.c_str());
+        return mysql.update(sql);
+    }
+    return false;
+}
+
+// 退出群组
+bool GroupModel::quitGroup(int userid, int groupid)
+{
     // 组装mysql语句
     char sql[1024] = {0};
-    sprintf(sql, "insert into groupuser values('%d','%d','%s')", groupid, userid, role.c_str());
+    sprintf(sql, "delete from groupuser where groupid=%d and userid=%d", groupid, userid);
     MySQL mysql;
     if (mysql.connect())
     {
@@ -41,6 +57,7 @@ bool GroupModel::addGroup(int userid, int groupid, string role)
     }
     return false;
 }
+
 // 查询用户所在的群组信息
 vector<Group> GroupModel::queryGroups(int userid)
 {

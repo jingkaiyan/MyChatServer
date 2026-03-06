@@ -32,13 +32,19 @@ public:
     void registerUser(const QString& name, const QString& password);
     void sendChatMessage(int toUserId, const QString& message);
     void sendGroupMessage(int groupId, const QString& message);
+    void sendAiMessage(const QString& message, bool resetContext = false);
     void addFriend(int friendId);
+    void deleteFriend(int friendId);
     void createGroup(const QString& groupName, const QString& groupDesc);
     void joinGroup(int groupId);
+    void quitGroup(int groupId);
 
     // 当前登录用户信息
     int getCurrentUserId() const { return m_currentUserId; }
     QString getCurrentUserName() const { return m_currentUserName; }
+    json getCachedFriendList() const;
+    json getCachedGroupList() const;
+    json takeCachedOfflineMessages();
 
 signals:
     // 连接状态信号
@@ -49,11 +55,13 @@ signals:
     // 业务消息信号
     void loginResult(bool success, const QString& message, int userId, const QString& userName);
     void registerResult(bool success, const QString& message);
+    void friendOperationResult(bool success, const QString& message);
     void friendListReceived(const json& friendList);
     void groupListReceived(const json& groupList);
     void offlineMessagesReceived(const json& messages);
     void chatMessageReceived(int fromUserId, const QString& userName, const QString& message);
     void groupMessageReceived(int groupId, int fromUserId, const QString& userName, const QString& message);
+    void aiMessageReceived(const QString& userName, const QString& message);
     void friendStateChanged(int friendId, const QString& state);
 
 private:
@@ -69,6 +77,7 @@ private:
     void handleRegisterResponse(const json& jsonMsg);
     void handleChatMessage(const json& jsonMsg);
     void handleGroupMessage(const json& jsonMsg);
+    void handleAiResponse(const json& jsonMsg);
     void handleFriendStateChange(const json& jsonMsg);
 
 private slots:
@@ -80,6 +89,9 @@ private slots:
 private:
     QTcpSocket* m_socket;
     QString m_readBuffer;  // 处理粘包
+    json m_cachedFriendList;
+    json m_cachedGroupList;
+    json m_cachedOfflineMessages;
     
     // 当前用户信息
     int m_currentUserId;

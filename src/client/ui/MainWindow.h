@@ -25,9 +25,14 @@ public:
 private slots:
     // UI 事件槽函数
     void on_sendButton_clicked();
-    void on_friendItem_clicked(QListWidgetItem *item);
-    void on_groupItem_clicked(QListWidgetItem *item);
-    void on_contactSearch_textChanged(const QString &text);
+    void on_friendListWidget_itemClicked(QListWidgetItem *item);
+    void on_groupListWidget_itemClicked(QListWidgetItem *item);
+    void on_contactSearchEdit_textChanged(const QString &text);
+    void on_addFriendButton_clicked();
+    void on_deleteFriendButton_clicked();
+    void on_createGroupButton_clicked();
+    void on_joinGroupButton_clicked();
+    void on_quitGroupButton_clicked();
     
     // 网络回调槽函数
     void onFriendListReceived(const json& friendList);
@@ -35,14 +40,20 @@ private slots:
     void onOfflineMessagesReceived(const json& messages);
     void onChatMessageReceived(int fromUserId, const QString& userName, const QString& message);
     void onGroupMessageReceived(int groupId, int fromUserId, const QString& userName, const QString& message);
+    void onAiMessageReceived(const QString& userName, const QString& message);
     void onFriendStateChanged(int friendId, const QString& state);
+    void onFriendOperationResult(bool success, const QString& message);
     void onNetworkDisconnected();
+    void onNetworkError(const QString& error);
 
 private:
     void connectNetworkSignals();
     void appendSystemTip(const QString &text);
     void updateContactStats();
     void appendChatMessage(const QString& sender, const QString& message, bool isSent = false);
+    QListWidgetItem* findAiAssistantItem() const;
+    void refreshAiAssistantItem();
+    bool isAiChatActive() const;
 
     Ui::MainWindow *ui;
     QString currentChatTarget; // 当前聊天目标（显示名）
@@ -55,6 +66,7 @@ private:
     QMap<QString, int> m_friendNameToId;  // 好友名称 -> ID
     QMap<int, QString> m_groupIdToName;   // 群组 ID -> 名称
     QMap<QString, int> m_groupNameToId;   // 群组名称 -> ID
+    int m_aiUnreadCount;                  // AI 助手未读数
 };
 
 #endif // MAINWINDOW_H

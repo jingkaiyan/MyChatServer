@@ -1,6 +1,8 @@
 #include "model/usermodel.hpp"
 #include <iostream>
 #include <db/db.h>
+#include <algorithm>
+#include <cctype>
 
 /*
  * UserModel 负责对 User 表的数据库操作封装。
@@ -11,14 +13,16 @@
 // User表的增加方法
 bool UserModel::insert(User &user)
 {
-    char sql[1024] = {0};
-
-    sprintf(sql, "insert into user(name,password,state) values('%s','%s','%s')",
-            user.getName().c_str(), user.getPassword().c_str(), user.getState().c_str());
-
     MySQL mysql;
     if (mysql.connect())
     {
+        string escapedName = mysql.escapeString(user.getName());
+        string escapedPassword = mysql.escapeString(user.getPassword());
+        string escapedState = mysql.escapeString(user.getState());
+        char sql[1024] = {0};
+        snprintf(sql, sizeof(sql), "insert into user(name,password,state) values('%s',sha2('%s',256),'%s')",
+             escapedName.c_str(), escapedPassword.c_str(), escapedState.c_str());
+
         if (mysql.update(sql))
         {
             // 获取插入成功的用户数据生成的主键id
@@ -27,6 +31,57 @@ bool UserModel::insert(User &user)
         }
     }
     return false;
+}
+
+bool UserModel::checkPassword(int id, const string &password)
+{
+    MySQL mysql;
+    if (!mysql.connect())
+    {
+        return false;
+    }
+
+    string escapedPassword = mysql.escapeString(password);
+    char sql[1024] = {0};
+    snprintf(sql, sizeof(sql),
+             "select password from user where id = %d and (password = sha2('%s',256) or password = '%s') limit 1",
+             id,
+             escapedPassword.c_str(),
+             escapedPassword.c_str());
+
+    MYSQL_RES *res = mysql.query(sql);
+    if (res == nullptr)
+    {
+        return false;
+    }
+
+    MYSQL_ROW row = mysql_fetch_row(res);
+    if (row == nullptr || row[0] == nullptr)
+    {
+        mysql_free_result(res);
+        return false;
+    }
+
+    string storedPassword = row[0];
+    mysql_free_result(res);
+
+    bool looksLikeSha256 = storedPassword.size() == 64 &&
+                           all_of(storedPassword.begin(), storedPassword.end(), [](unsigned char ch) {
+                               return isxdigit(ch) != 0;
+                           });
+
+    if (!looksLikeSha256)
+    {
+        char upgradeSql[1024] = {0};
+        snprintf(upgradeSql, sizeof(upgradeSql),
+                 "update user set password = sha2('%s',256) where id = %d and password = '%s'",
+                 escapedPassword.c_str(),
+                 id,
+                 escapedPassword.c_str());
+        mysql.update(upgradeSql);
+    }
+
+    return true;
 }
 // 根据用户id查询用户信息
 User UserModel::query(int id)
@@ -60,12 +115,12 @@ User UserModel::query(int id)
 // 更新用户状态信息
 bool UserModel::updateState(User user)
 {
-    // 组装sql语句
-    char sql[1024] = {};
-    sprintf(sql, "update user set state = '%s' where id = %d", user.getState().c_str(), user.getId());
     MySQL mysql;
     if (mysql.connect())
     {
+        string escapedState = mysql.escapeString(user.getState());
+        char sql[1024] = {};
+        snprintf(sql, sizeof(sql), "update user set state = '%s' where id = %d", escapedState.c_str(), user.getId());
         if(mysql.update(sql))
         {
             return true;

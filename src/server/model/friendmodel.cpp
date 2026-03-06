@@ -2,17 +2,38 @@
 #include "db/db.h"
 
 // 添加好友
-void FriendModel::insert(int userid, int friendid)
+bool FriendModel::insert(int userid, int friendid)
 {
-    //组装sql语句
+    // 组装sql语句（双向关系）
+    char sql1[1024] = {0};
+    char sql2[1024] = {0};
+    sprintf(sql1, "insert ignore into friend values(%d,%d)", userid, friendid);
+    sprintf(sql2, "insert ignore into friend values(%d,%d)", friendid, userid);
+    MySQL mysql;
+    if (mysql.connect())
+    {
+        bool ok1 = mysql.update(sql1);
+        bool ok2 = mysql.update(sql2);
+        return ok1 && ok2;
+    }
+    return false;
+}
+
+// 删除好友
+bool FriendModel::remove(int userid, int friendid)
+{
+    //组装sql语句，双向删除
     char sql[1024] = {0};
-    sprintf(sql,"insert into friend values(%d,%d)",userid,friendid);
+    sprintf(sql,"delete from friend where (userid=%d and friendid=%d) or (userid=%d and friendid=%d)",
+            userid, friendid, friendid, userid);
     MySQL mysql;
     if(mysql.connect())
     {
-        mysql.update(sql);
+        return mysql.update(sql);
     }
+    return false;
 }
+
 // 返回用户的好友列表
 vector<User> FriendModel::query(int userid)
 {

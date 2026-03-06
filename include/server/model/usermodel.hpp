@@ -8,6 +8,9 @@
  */
 
 #include"user.hpp"
+#include <string>
+
+using std::string;
 
 class UserModel{
 public:
@@ -15,6 +18,8 @@ public:
     bool insert(User &user);
     //根据用户id查询用户信息
     User query(int id);
+    //校验用户密码（兼容旧明文并自动升级为哈希）
+    bool checkPassword(int id, const string &password);
     //更新用户状态信息
     bool updateState(User user);
     //重置所有在线用户状态为offline（服务重启时使用）
