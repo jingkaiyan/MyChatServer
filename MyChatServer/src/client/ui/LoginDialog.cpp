@@ -1,5 +1,6 @@
 #include "LoginDialog.h"
 #include "ui_LoginDialog.h"
+#include "RegisterDialog.h"
 #include "../network/NetworkClient.h"
 #include <QMessageBox>
 #include <QDebug>
@@ -55,6 +56,12 @@ void LoginDialog::on_loginButton_clicked()
     
     // 连接服务器
     connectToServer();
+}
+
+void LoginDialog::on_registerButton_clicked()
+{
+    RegisterDialog regDlg(this);
+    regDlg.exec();
 }
 
 void LoginDialog::connectToServer()
@@ -125,4 +132,5 @@ void LoginDialog::setUIEnabled(bool enabled)
     ui->userIdEdit->setEnabled(enabled);
     ui->passwordEdit->setEnabled(enabled);
     ui->loginButton->setEnabled(enabled);
+    ui->registerButton->setEnabled(enabled);
 }

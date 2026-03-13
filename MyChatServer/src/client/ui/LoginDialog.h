@@ -25,7 +25,8 @@ public:
 
 private slots:
     void on_loginButton_clicked();
-    
+    void on_registerButton_clicked();
+
     // 网络回调
     void onConnected();
     void onDisconnected();
