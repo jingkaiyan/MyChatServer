@@ -275,30 +275,35 @@ sudo ldconfig  # 更新动态链接库缓存
 ### 用户模块
 ```cpp
 LOGIN_MSG (1)          // 登录请求
-LOG_MSG_ACK (2)        // 登录响应
-REG_MSG (4)            // 注册请求
-REG_MSG_ACK (5)        // 注册响应
-LOGINOUT_MSG (3)       // 登出
+REG_MSG (2)            // 注册请求
+REG_MSG_ACK (3)        // 注册响应
+LOG_MSG_ACK (4)        // 登录响应
+LOGINOUT_MSG (5)       // 登出
 ```
 
 ### 好友模块
 ```cpp
 ADD_FRIEND_MSG (7)          // 添加好友
-DELETE_FRIEND_MSG (8)       // 删除好友
-FRIEND_STATE_MSG (14)       // 好友在线状态变更（推送）
+ADD_FRIEND_MSG_ACK (8)      // 添加好友响应
+DELETE_FRIEND_MSG (9)       // 删除好友
+DELETE_FRIEND_MSG_ACK (10)  // 删除好友响应
+FRIEND_STATE_MSG (18)       // 好友在线状态变更（推送）
 ```
 
 ### 群组模块
 ```cpp
-CREATE_GROUP_MSG (8)        // 创建群组
-ADD_GROUP_MSG (9)           // 加入群组
-QUIT_GROUP_MSG (10)         // 退出群组
+CREATE_GROUP_MSG (11)       // 创建群组
+CREATE_GROUP_MSG_ACK (12)   // 创建群组响应
+ADD_GROUP_MSG (13)          // 加入群组
+ADD_GROUP_MSG_ACK (14)      // 加入群组响应
+QUIT_GROUP_MSG (15)         // 退出群组
+QUIT_GROUP_MSG_ACK (16)     // 退出群组响应
 ```
 
 ### 消息模块
 ```cpp
 ONE_CHAT_MSG (6)            // 单聊消息
-GROUP_CHAT_MSG (13)         // 群聊消息
+GROUP_CHAT_MSG (17)         // 群聊消息
 ```
 
 ### 通信协议示例
@@ -315,7 +320,7 @@ GROUP_CHAT_MSG (13)         // 群聊消息
 **登录成功响应**：
 ```json
 {
-  "msgid": 2,
+  "msgid": 4,
   "errno": 0,
   "id": 123,
   "name": "john_doe",
@@ -415,10 +420,6 @@ GROUP_CHAT_MSG (13)         // 群聊消息
 
 ---
 
-## 💼 面试要点
-
----
-
 ## 🎁 打包发布
 
 ```bash
@@ -509,12 +510,10 @@ cd MyChatServer
 ## 📚 相关文档
 
 - [部署与使用指南](DEPLOYMENT.md) —— 详细的编译、部署、测试步骤
-- [协议文档](docs/PROTOCOL.md) —— 消息类型定义与格式规范（建议补充）
-- [架构设计](docs/ARCHITECTURE.md) —— 详细的架构文档（建议补充）
+- [协议文档](docs/PROTOCOL.md) —— 消息类型定义与格式规范
+- [架构设计](docs/ARCHITECTURE.md) —— 详细的架构文档
 
 ---
-
-## 🗺️ 项目 Roadmap
 
 ## 🗺️ 项目 Roadmap
 
